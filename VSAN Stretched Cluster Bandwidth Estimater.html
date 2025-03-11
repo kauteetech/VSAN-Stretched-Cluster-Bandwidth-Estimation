@@ -1,0 +1,267 @@
+
+<!-- 
+Ideation, design and developed by Ravikumar Govindaraj. 
+mail your feedbacks to ravikumar.govindaraj@broadcom.com
+
+send your appreciation to my manager murugan.enom@broadcom.com    ;-)
+
+About the tool.. 
+
+A Strecthed cluster bandwidth approximation tool, this tool is based on Pete Koehler - White paper on Stretched cluster bandwidth calculation https://www.vmware.com/docs/vmw-vsan-stretched-cluster-bandwidth-sizing
+
+1. calcution can be carried for both ESA and OSA
+2. Read Write ratios can be adjusted
+3. Minimal inputs are required.. 
+
+Must thank chatGPT for optimizing, standardizing and including all the best practices.. my code skills need a lot
+of improvements.. I am worst on the best practices in particular naming conventions and many more. even GenAI gave up on me, I am that stubborn student. 
+Also I can get away saying I am not trained developer.. just a roookieeee.. That's the freedom I love to have..  yo baby...
+
+
+
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VSAN Stretched Cluster Bandwidth Calculator</title>
+    <link href="https://unpkg.com/@clr/ui/clr-ui.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --clr-global-primary-0: #0079B8;
+            --clr-global-primary-1000: #004A70;
+        }
+
+        body {
+            background-color: #fafafa;
+            padding: 1rem;
+        }
+
+        .calculator-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin: 2rem 0;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 1rem;
+        }
+
+        .card {
+            margin: 1rem 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            border-radius: 3px;
+        }
+
+        .card-header {
+            background-color: var(--clr-global-primary-0);
+            color: white;
+            padding: 1rem;
+            border-radius: 3px 3px 0 0;
+        }
+
+        .card-block {
+            padding: 1rem;
+            background: white;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+            align-items: center;
+        }
+
+        .toggle-group {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .toggle-btn {
+            background: #e9ecef;
+            border: 1px solid #ccc;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .toggle-btn.active {
+            background: var(--clr-global-primary-0);
+            color: white;
+            border-color: var(--clr-global-primary-1000);
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-left: 4px solid var(--clr-global-primary-0);
+            padding: 1rem;
+            margin: 1rem 0;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .formula-display {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.9em;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tooltip-icon {
+            color: var(--clr-global-primary-0);
+            cursor: help;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <div class="header">
+            <h1 class="title">VSAN Stretched Cluster Bandwidth Calculator</h1>
+            <p class="p1">Based on VSAN 8 U3 & VCF 5.2 Specifications</p>
+        </div>
+
+        <div class="toggle-group">
+            <button class="toggle-btn active" onclick="toggleArchitecture('esa')">vSAN ESA</button>
+            <button class="toggle-btn" onclick="toggleArchitecture('osa')">vSAN OSA</button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Data Site Bandwidth Calculation</div>
+            <div class="card-block">
+                <div class="input-group">
+                    <label>Total IOPS <clr-icon class="tooltip-icon" shape="info-circle" size="16" title="Total read+write operations per second"></clr-icon></label>
+                    <input class="clr-input" type="number" id="totalIops" step="100" value="10000">
+                </div>
+
+                <div class="input-group">
+                    <label>Read/Write Ratio <clr-icon class="tooltip-icon" shape="info-circle" size="16" title="Percentage of read vs write operations"></clr-icon></label>
+                    <select class="clr-select" id="rwRatio">
+                        <option value="80-20">80% Read / 20% Write</option>
+                        <option value="70-30">70% Read / 30% Write</option>
+                        <option value="60-40">60% Read / 40% Write</option>
+                        <option value="50-50">50% Read / 50% Write</option>
+                        <option value="30-70">30% Read / 70% Write</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Average I/O Size (KB) <clr-icon class="tooltip-icon" shape="info-circle" size="16" title="Average size of write operations"></clr-icon></label>
+                    <input class="clr-input" type="number" id="ioSize" step="1" value="8">
+                </div>
+
+                <div class="input-group esa-input">
+                    <label>Compression Ratio <clr-icon class="tooltip-icon" shape="info-circle" size="16" title="ESA compression ratio (e.g., 2 for 2:1 compression)"></clr-icon></label>
+                    <input class="clr-input" type="number" id="compression" step="0.1" value="2">
+                </div>
+
+                <div class="result-card" id="dataResult"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Witness Site Bandwidth Calculation</div>
+            <div class="card-block">
+                <div class="input-group">
+                    <label>Number of Components <clr-icon class="tooltip-icon" shape="info-circle" size="16" title="Total components in the cluster"></clr-icon></label>
+                    <input class="clr-input" type="number" id="components" value="1000">
+                </div>
+
+                <div class="result-card" id="witnessResult"></div>
+            </div>
+        </div>
+<br>
+        Share  your feedback to <a href="mailto:ravikumar.govindaraj@broadcom"> Ravikumar Govindaraj</a>
+    </div>
+
+    <script>
+        let currentArchitecture = 'esa';
+
+        function toggleArchitecture(arch) {
+            currentArchitecture = arch;
+            document.querySelectorAll('.toggle-btn').forEach(btn => 
+                btn.classList.remove('active'));
+            document.querySelector(`button[onclick="toggleArchitecture('${arch}')"]`)
+                .classList.add('active');
+            document.querySelectorAll('.esa-input').forEach(el => 
+                el.style.display = arch === 'esa' ? 'grid' : 'none');
+            calculate();
+        }
+
+        function calculate() {
+            // Get ratios
+            const [readPercent, writePercent] = document.getElementById('rwRatio').value
+                .split('-')
+                .map(Number);
+
+            // Get inputs
+            const totalIops = parseFloat(document.getElementById('totalIops').value);
+            const ioSize = parseFloat(document.getElementById('ioSize').value);
+            const compression = parseFloat(document.getElementById('compression').value);
+            const components = parseFloat(document.getElementById('components').value);
+
+            // Calculate effective write IOPS
+            const writeIops = totalIops * (writePercent / 100);
+
+            // Calculate Write Bandwidth (Wb)
+            const writeBandwidthMbps = (writeIops * ioSize * 8) / 1000;
+
+            // Data Site Calculation
+            let dataBandwidth;
+            if(currentArchitecture === 'esa') {
+                dataBandwidth = writeBandwidthMbps * 1.4 * 1.25 * (1/compression);
+            } else {
+                dataBandwidth = writeBandwidthMbps * 1.4 * 1.25;
+            }
+
+            // Witness Site Calculation
+            const witnessBandwidth = (1138 * 8 * components / 5) / 1e6;
+            const witnessWithMargin = witnessBandwidth * 1.1;
+
+            // Update Results
+            document.getElementById('dataResult').innerHTML = `
+                <h3 class="p3">Data Site Bandwidth Requirement</h3>
+                <p class="p5">Effective Write IOPS: <strong>${writeIops.toFixed(0)}</strong></p>
+                <p class="p5">Calculated Bandwidth: <strong>${dataBandwidth.toFixed(2)} Mbps</strong></p>
+                <p class="p5">Recommended Minimum: <strong>${Math.max(dataBandwidth, 10000).toFixed(2)} Mbps</strong></p>
+                <div class="formula-display">
+                    Formula: ${currentArchitecture === 'esa' ? 
+                        '(Total IOPS × Write% × I/O Size × 8 × 1.4 × 1.25) / Compression' : 
+                        'Total IOPS × Write% × I/O Size × 8 × 1.4 × 1.25'}
+                </div>
+            `;
+
+            document.getElementById('witnessResult').innerHTML = `
+                <h3 class="p3">Witness Site Bandwidth Requirement</h3>
+                <p class="p5">Base Bandwidth: <strong>${witnessBandwidth.toFixed(2)} Mbps</strong></p>
+                <p class="p5">With Safety Margin (10%): <strong>${witnessWithMargin.toFixed(2)} Mbps</strong></p>
+                <p class="p5">Rule of Thumb: <strong>${Math.ceil(components/1000)*2} Mbps</strong> (2Mbps per 1000 components)</p>
+                <div class="formula-display">
+                    Formula: (1138B × Components × 8) ÷ 5s × 1.1
+                </div>
+            `;
+        }
+
+        // Initial calculation and event listeners
+        document.querySelectorAll('input, select').forEach(element => {
+            element.addEventListener('input', calculate);
+        });
+        calculate();
+    </script>
+</body>
+
+
+</html>
