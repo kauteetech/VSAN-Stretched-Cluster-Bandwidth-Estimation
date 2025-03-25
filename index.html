@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,163 +6,332 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VSAN Stretched Cluster Bandwidth Calculator</title>
     <link href="https://unpkg.com/@clr/ui/clr-ui.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --clr-global-primary-0: #0079B8;
-            --clr-global-primary-1000: #004A70;
+            --primary: #f5c108; /* Yellow from Handyman template */
+            --secondary: #171a1c; /* Dark gray */
+            --bg-light: #f5f5f5; /* Light gray background */
+            --card-bg: #ffffff;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            background-color: #fafafa;
-            padding: 1rem;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-light);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--secondary);
+            overflow: hidden;
         }
 
         .calculator-container {
-            max-width: 1200px;
-            margin: 0 auto;
+            width: 250vw;
+            max-width: 1000px;
+            height: 250vh;
+            max-height: 800px;
+            display: flex;
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+
+            
+
+        }
+
+        .sidebar {
+            width: 200px;
+            background: var(--secondary);
             padding: 1rem;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+
+            
+
+
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            overflow-y: auto;
         }
 
         .header {
             text-align: center;
-            margin: 2rem 0;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
 
-        .card {
-            margin: 1rem 0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-            border-radius: 3px;
+        .header h1 {
+            font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+            font-weight: 700;
+            color: var(--primary);
         }
 
-        .card-header {
-            background-color: var(--clr-global-primary-0);
-            color: white;
-            padding: 1rem;
-            border-radius: 3px 3px 0 0;
-        }
-
-        .card-block {
-            padding: 1rem;
-            background: white;
-        }
-
-        .input-group {
-            display: grid;
-            grid-template-columns: 200px 1fr;
-            gap: 1rem;
-            margin: 1rem 0;
-            align-items: center;
+        .header p {
+            font-size: clamp(0.75rem, 1.2vw, 0.9rem);
+            color: #6c757d;
         }
 
         .toggle-group {
             display: flex;
-            gap: 1rem;
-            margin: 1rem 0;
+            flex-direction: column;
+            gap: 0.8rem;
+           
         }
 
         .toggle-btn {
-            background: #e9ecef;
-            border: 1px solid #ccc;
-            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            padding: 0.6rem;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 5px;
             cursor: pointer;
-            border-radius: 3px;
+            transition: background 0.3s ease;
+
+            position: relative;
+            top: -260px
+            
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .toggle-btn.active {
-            background: var(--clr-global-primary-0);
-            color: white;
-            border-color: var(--clr-global-primary-1000);
+            background: var(--primary);
+            color: var(--secondary);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+        }
+
+        .card-header {
+            padding: 0.5rem;
+            color: var(--secondary);
+            font-size: clamp(0.9rem, 1.5vw, 1rem);
+            font-weight: 600;
+            text-align: center;
+            background: var(--primary);
+        }
+
+        .card-block {
+            padding: 0.75rem;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+            align-items: center;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            font-size: clamp(0.75rem, 1.2vw, 0.85rem);
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .clr-input, .clr-select {
+            border-radius: 5px;
+            padding: 0.4rem;
+            border: 1px solid #dee2e6;
+            font-size: clamp(0.75rem, 1.2vw, 0.85rem);
+            transition: border-color 0.3s ease;
+        }
+
+        .clr-input:focus, .clr-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 3px rgba(245, 193, 8, 0.3);
+        }
+
+        .tooltip-icon {
+            color: var(--primary);
+            cursor: help;
         }
 
         .result-card {
             background: #f8f9fa;
-            border-left: 4px solid var(--clr-global-primary-0);
-            padding: 1rem;
-            margin: 1rem 0;
-            animation: fadeIn 0.3s ease;
+            border-radius: 5px;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            border-left: 3px solid var(--primary);
+            font-size: clamp(0.7rem, 1.2vw, 0.8rem);
+        }
+
+        .result-card h3 {
+            font-size: clamp(0.85rem, 1.5vw, 0.95rem);
+            margin-bottom: 0.25rem;
+            color: var(--secondary);
+        }
+
+        .result-card p {
+            margin: 0.2rem 0;
         }
 
         .formula-display {
             background: #fff;
-            border: 1px solid #ddd;
-            padding: 1rem;
-            margin: 1rem 0;
-            font-family: 'Source Code Pro', monospace;
-            font-size: 0.9em;
+            border: 1px solid #e9ecef;
+            padding: 0.4rem;
+            margin-top: 0.25rem;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(0.65rem, 1vw, 0.75rem);
+            color: #495057;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        footer {
+            text-align: center;
+            font-size: clamp(0.7rem, 1vw, 0.8rem);
+            color: #6c757d;
+            margin-top: 0.5rem;
         }
 
-        .tooltip-icon {
-            color: var(--clr-global-primary-0);
-            cursor: help;
-            margin-left: 0.5rem;
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .calculator-container {
+                flex-direction: column;
+                height: auto;
+                max-height: 90vh;
+                padding: 0.5rem;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 0.5rem;
+                flex-direction: row;
+                justify-content: space-around;
+            }
+
+            .input-group {
+                grid-template-columns: 120px 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .calculator-container {
+                width: 95vw;
+            }
+
+            .input-group {
+                grid-template-columns: 1fr;
+                gap: 0.25rem;
+            }
+
+            .card-block {
+                padding: 0.5rem;
+            }
+
+            .sidebar {
+                padding: 0.25rem;
+            }
+
+            .toggle-btn {
+                padding: 0.4rem;
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="calculator-container">
-        <div class="header">
-            <h1 class="title">VSAN Stretched Cluster Bandwidth Calculator</h1>
-            <p class="p1">Based on VSAN 8 U3 & VCF 5.2 Specifications</p>
-        </div>
-
-        <div class="toggle-group">
-            <button class="toggle-btn active" onclick="toggleArchitecture('esa')">vSAN ESA</button>
-            <button class="toggle-btn" onclick="toggleArchitecture('osa')">vSAN OSA</button>
-        </div>
-
-        <div class="card">
-            <div class="card-header">Data Site Bandwidth Calculation</div>
-            <div class="card-block">
-                <div class="input-group">
-                    <label>Total IOPS <clr-icon class="tooltip-icon" shape="info-circle" size="16" title="Total read+write operations per second"></clr-icon></label>
-                    <input class="clr-input" type="number" id="totalIops" step="100" value="10000">
-                </div>
-
-                <div class="input-group">
-                    <label>Read/Write Ratio <clr-icon class="tooltip-icon" shape="info-circle" size="16" title="Percentage of read vs write operations"></clr-icon></label>
-                    <select class="clr-select" id="rwRatio">
-                        <option value="80-20">80% Read / 20% Write</option>
-                        <option value="70-30">70% Read / 30% Write</option>
-                        <option value="60-40">60% Read / 40% Write</option>
-                        <option value="50-50">50% Read / 50% Write</option>
-                        <option value="30-70">30% Read / 70% Write</option>
-                    </select>
-                </div>
-
-                <div class="input-group">
-                    <label>Average I/O Size (KB) <clr-icon class="tooltip-icon" shape="info-circle" size="16" title="Average size of write operations"></clr-icon></label>
-                    <input class="clr-input" type="number" id="ioSize" step="1" value="8">
-                </div>
-
-                <div class="input-group esa-input">
-                    <label>Compression Ratio <clr-icon class="tooltip-icon" shape="info-circle" size="16" title="ESA compression ratio (e.g., 2 for 2:1 compression)"></clr-icon></label>
-                    <input class="clr-input" type="number" id="compression" step="0.1" value="2">
-                </div>
-
-                <div class="result-card" id="dataResult"></div>
+        <div class="sidebar">
+            <div class="toggle-group">
+                <button class="toggle-btn active" onclick="toggleArchitecture('esa')">vSAN ESA</button>
+                <button class="toggle-btn" onclick="toggleArchitecture('osa')">vSAN OSA</button>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">Witness Site Bandwidth Calculation</div>
-            <div class="card-block">
-                <div class="input-group">
-                    <label>Number of Components <clr-icon class="tooltip-icon" shape="info-circle" size="16" title="Total components in the cluster"></clr-icon></label>
-                    <input class="clr-input" type="number" id="components" value="1000">
-                </div>
+        <div class="main-content">
+            <div class="header">
+                <h1>vSAN Stretched Cluster Bandwidth Calculator</h1>
+               
+            </div>
 
-                <div class="result-card" id="witnessResult"></div>
+            <div class="card">
+                <div class="card-header">Data Site Bandwidth Calculation</div>
+                <div class="card-block">
+                    <div class="input-group">
+                        <label>Total IOPS <clr-icon class="tooltip-icon" shape="info-circle" size="12" title="Total read+write operations per second"></clr-icon></label>
+                        <input class="clr-input" type="number" id="totalIops" step="100" value="10000">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Read/Write Ratio <clr-icon class="tooltip-icon" shape="info-circle" size="12" title="Percentage of read vs write operations"></clr-icon></label>
+                        <select class="clr-select" id="rwRatio">
+                            <option value="80-20">80% Read / 20% Write</option>
+                            <option value="70-30">70% Read / 30% Write</option>
+                            <option value="60-40">60% Read / 40% Write</option>
+                            <option value="50-50">50% Read / 50% Write</option>
+                            <option value="30-70">30% Read / 70% Write</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Average I/O Size (KB) <clr-icon class="tooltip-icon" shape="info-circle" size="12" title="Average size of write operations"></clr-icon></label>
+                        <input class="clr-input" type="number" id="ioSize" step="1" value="8">
+                    </div>
+
+                    <div class="input-group esa-input">
+                        <label>Compression Ratio <clr-icon class="tooltip-icon" shape="info-circle" size="12" title="ESA compression ratio (e.g., 2 for 2:1 compression)"></clr-icon></label>
+                        <input class="clr-input" type="number" id="compression" step="0.1" value="2">
+                    </div>
+
+                    <div class="result-card" id="dataResult"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Witness Site Bandwidth Calculation</div>
+                <div class="card-block">
+                    <div class="input-group">
+                        <label>Number of Components <clr-icon class="tooltip-icon" shape="info-circle" size="12" title="Total components in the cluster"></clr-icon></label>
+                        <input class="clr-input" type="number" id="components" value="1000">
+                    </div>
+
+                    <div class="result-card" id="witnessResult"></div>
+                </div>
             </div>
         </div>
-<br>
-        Share  your feedback to <a href="mailto:ravikumar.govindaraj@broadcom"> Ravikumar Govindaraj</a>
     </div>
 
     <script>
@@ -180,67 +348,64 @@
             calculate();
         }
 
+        function formatBandwidth(mbps) {
+            return mbps >= 1000 ? `${(mbps / 1000).toFixed(2)} Gbps` : `${mbps.toFixed(2)} Mbps`;
+        }
+
         function calculate() {
-            // Get ratios
             const [readPercent, writePercent] = document.getElementById('rwRatio').value
                 .split('-')
                 .map(Number);
 
-            // Get inputs
-            const totalIops = parseFloat(document.getElementById('totalIops').value);
-            const ioSize = parseFloat(document.getElementById('ioSize').value);
-            const compression = parseFloat(document.getElementById('compression').value);
-            const components = parseFloat(document.getElementById('components').value);
+            const totalIops = parseFloat(document.getElementById('totalIops').value) || 0;
+            const ioSize = parseFloat(document.getElementById('ioSize').value) || 0;
+            const compression = parseFloat(document.getElementById('compression').value) || 1;
+            const components = parseFloat(document.getElementById('components').value) || 0;
 
-            // Calculate effective write IOPS
+            if (totalIops <= 0 || ioSize <= 0 || (currentArchitecture === 'esa' && compression <= 0)) {
+                document.getElementById('dataResult').innerHTML = '<p style="color: #dc3545;">Enter valid positive values.</p>';
+                document.getElementById('witnessResult').innerHTML = '';
+                return;
+            }
+
             const writeIops = totalIops * (writePercent / 100);
-
-            // Calculate Write Bandwidth (Wb)
             const writeBandwidthMbps = (writeIops * ioSize * 8) / 1000;
 
-            // Data Site Calculation
             let dataBandwidth;
-            if(currentArchitecture === 'esa') {
-                dataBandwidth = writeBandwidthMbps * 1.4 * 1.25 * (1/compression);
+            if (currentArchitecture === 'esa') {
+                dataBandwidth = writeBandwidthMbps * 1.4 * 1.25 * (1 / compression);
             } else {
                 dataBandwidth = writeBandwidthMbps * 1.4 * 1.25;
             }
 
-            // Witness Site Calculation
             const witnessBandwidth = (1138 * 8 * components / 5) / 1e6;
             const witnessWithMargin = witnessBandwidth * 1.1;
 
-            // Update Results
             document.getElementById('dataResult').innerHTML = `
-                <h3 class="p3">Data Site Bandwidth Requirement</h3>
-                <p class="p5">Effective Write IOPS: <strong>${writeIops.toFixed(0)}</strong></p>
-                <p class="p5">Calculated Bandwidth: <strong>${dataBandwidth.toFixed(2)} Mbps</strong></p>
-                <p class="p5">Recommended Minimum: <strong>${Math.max(dataBandwidth, 10000).toFixed(2)} Mbps</strong></p>
+                <h3>Data Site</h3>
+                <p>Write IOPS: <strong>${writeIops.toFixed(0)}</strong></p>
+                <p>Bandwidth: <strong>${formatBandwidth(dataBandwidth)}</strong></p>
                 <div class="formula-display">
-                    Formula: ${currentArchitecture === 'esa' ? 
-                        '(Total IOPS × Write% × I/O Size × 8 × 1.4 × 1.25) / Compression' : 
-                        'Total IOPS × Write% × I/O Size × 8 × 1.4 × 1.25'}
+                    ${currentArchitecture === 'esa' ? 
+                        '(IOPS × Write% × I/O × 8 × 1.4 × 1.25) / Comp' : 
+                        'IOPS × Write% × I/O × 8 × 1.4 × 1.25'}
                 </div>
             `;
 
             document.getElementById('witnessResult').innerHTML = `
-                <h3 class="p3">Witness Site Bandwidth Requirement</h3>
-                <p class="p5">Base Bandwidth: <strong>${witnessBandwidth.toFixed(2)} Mbps</strong></p>
-                <p class="p5">With Safety Margin (10%): <strong>${witnessWithMargin.toFixed(2)} Mbps</strong></p>
-                <p class="p5">Rule of Thumb: <strong>${Math.ceil(components/1000)*2} Mbps</strong> (2Mbps per 1000 components)</p>
+                <h3>Witness Site</h3>
+                <p>Base: <strong>${formatBandwidth(witnessBandwidth)}</strong></p>
+                <p>With 10%: <strong>${formatBandwidth(witnessWithMargin)}</strong></p>
                 <div class="formula-display">
-                    Formula: (1138B × Components × 8) ÷ 5s × 1.1
+                    (1138B × Comp × 8) ÷ 5s × 1.1
                 </div>
             `;
         }
 
-        // Initial calculation and event listeners
         document.querySelectorAll('input, select').forEach(element => {
             element.addEventListener('input', calculate);
         });
         calculate();
     </script>
 </body>
-
-
 </html>
